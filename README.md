@@ -1,1 +1,3 @@
-# calculator
+# README
+
+Calculator Odin Project
