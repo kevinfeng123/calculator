@@ -1,6 +1,6 @@
-let currentDisplay = 25; //Display number on the calculator
-let currentNumber1 = ""; //Numbers being manipulated behind the scenes
-let currentNumber2 = "";
+let currentDisplay = ""; //Display number on the calculator
+let currentNumber = ""; //Numbers being manipulated behind the scenes
+let previousNumber = "";
 let operator = "";
 
 //basic arithmetic functions
@@ -25,7 +25,7 @@ let multiply = (num1, num2) => {
 let divide = (num1, num2) => {
     let parsed1 = parseInt(num1);
     let parsed2 = parseInt(num2);
-    return parsed1 / parsed2;
+    return (parsed1 / parsed2).toFixed(2);
 }
 
 let operate = (operator, num1, num2) => {
@@ -44,8 +44,8 @@ let operate = (operator, num1, num2) => {
 
 let clear = () => {
     operator = "";
-    currentNumber1 = "";
-    currentNumber2 = "";
+    currentNumber = "";
+    previousNumber = "";
     currentDisplay = "";
 }
 
@@ -54,7 +54,7 @@ let clear = () => {
 const calculatorButtons = document.querySelectorAll(".calculatorButtons");
 
 let populateCalculator = () => {
-    let buttonList = ["AC"," ", " ", "%", 7, 8, 9, "x", 4, 5, 6, "-", 1, 2, 3, "+", 0, " ", " ", "="];
+    let buttonList = ["AC","", "+/-", "%", 7, 8, 9, "x", 4, 5, 6, "-", 1, 2, 3, "+", 0, "", "", "="];
     let index = 0;
     calculatorButtons.forEach( button => {
         button.setAttribute("id", buttonList[index])
@@ -84,37 +84,72 @@ let updateDisplay = () => {
 populateDisplay();
 
 //adding event listeners to make buttons function
+let finishedOperation = false;
 
 calculatorButtons.forEach( button => {
     button.addEventListener("click", (e) =>{
         let buttonValue = e.target.getAttribute("id");
 
         //alert(buttonValue);
-
+        
         if (parseInt(buttonValue) >= 0){ //if button is a number add to display
-            currentNumber1 += buttonValue;
-            currentDisplay = currentNumber1;
+            if (finishedOperation){
+                currentNumber = "";
+                finishedOperation = false;
+            }
+            currentNumber += buttonValue;
+            currentDisplay = currentNumber;
+            
             //alert(parseInt(buttonValue))
+
         } else if (buttonValue == "AC") { //if button is AC, clear display
             clear();
             
-        } else if (buttonValue == "=" && operator !== "" && currentNumber2 !== ""){ 
+        } else if (buttonValue == "=" && operator !== ""){ 
             //checks for valid parameters and '=" before calculating"
-            currentNumber1 = operate(operator,currentNumber2,currentNumber1);
-            currentDisplay = currentNumber1;
+            currentNumber = operate(operator,previousNumber,currentNumber);
+            let tempNumber = currentNumber;
+            clear();
+            currentNumber = tempNumber;
+            currentDisplay = currentNumber;
+            finishedOperation = true;
             //alert("computed");
             
-        } else if (buttonValue !== " "){
+        } else if (buttonValue === "x" || buttonValue === "-" || buttonValue === "+" || buttonValue === "%"){
             //checks if button is an operator
-            operator = buttonValue;
-            currentNumber2 = currentNumber1;
-            currentNumber1 = "";
+            if (currentNumber === ""){
+                operator = buttonValue;
+            } else if (previousNumber !== "" && operator !== ""){ //if contains previous number and has valid operator, continue to operate
+                currentNumber = operate(operator, previousNumber, currentNumber);
+                currentDisplay = currentNumber;
+            }else if (currentNumber !== ""){
+                operator = buttonValue;
+                previousNumber = currentNumber;
+                currentNumber = "";
+            } else {
+                alert("something is wrong");
+            }
+           
+            //currentDisplay = currentNumber1;
             //alert(buttonValue);
-        } else {
-            alert('error');
+        } else if (buttonValue === "+/-"){
+            currentNumber *= -1;
+            currentDisplay = currentNumber;
+            updateDisplay;
+        }
+            else {
+            console.log('error message');
         }
         updateDisplay();
     })
 })
 
 
+//logs first number on click
+//if another number is selected, add it onto the first number
+//if an operation is selected, saves the current number as previous and save current operator
+//if an operation is selected instead of compute, will automatically compute and update display
+//logs 2nd number on click, saves the previous number
+//computes answer and updates display
+
+//
